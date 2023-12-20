@@ -15,14 +15,14 @@ def __parse_args():
     )
     required.add_argument("-a", "--archives", help="List of archives to read from", required=True)
     required.add_argument("-o", "--output", help="Output Folder", required=True)
-    required.add_argument("-f", "--fields", required=True)
-    required.add_argument("-r", "--repository", required=True)
-    required.add_argument("-x", "--extra_data", help="Extra data file" required=True)
+    required.add_argument("-f", "--fields", help="Fields required from grand challenge", required=True)
+    required.add_argument("-r", "--repository", help="Git repository to upload to", required=True)
+    required.add_argument("-x", "--extra_data", help="Extra data file", required=True)
     return parser.parse_args()
 
 
 def __get_client(credential_file):
-    """Grand challenge has no session features, so we include the client so we can do some recursive API calls
+    """Grand challenge has no session features, so we include the client, so we can do some recursive API calls
 
     The client needs a credential token, which is supplied from a file to avoid exposing it on the commandline
 
