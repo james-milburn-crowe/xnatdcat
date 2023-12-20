@@ -4,7 +4,7 @@ import argparse
 from datetime import date
 import json
 from src.gcdcat.gc_parser import gc_to_RDF
-
+from git import Repo
 def __parse_args():
     parser = argparse.ArgumentParser()
     required = parser.add_argument_group('required arguments')
