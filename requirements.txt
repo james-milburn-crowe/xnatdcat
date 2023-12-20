@@ -3,3 +3,4 @@ rdflib==7.*
 tqdm>=4.66.1
 xnat>=0.5.1
 gcapi>=0.12.0
+GitPython>=3.1.00
