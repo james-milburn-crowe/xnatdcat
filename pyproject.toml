@@ -18,6 +18,7 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
@@ -46,18 +47,19 @@ dependencies = ["coverage[toml]>=6.5", "pytest"]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
-cov-report = ["- coverage combine", "coverage report"]
+cov-report = ["- coverage combine", "coverage report", "coverage xml"]
 cov = ["test-cov", "cov-report"]
 
 [tool.hatch.envs.test]
-dependencies = ["pytest"]
+dependencies = ["pytest", "pytest-mock", "requests-mock", "pytest-cov"]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11"]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [tool.hatch.envs.lint]
 detached = true
 dependencies = ["black>=23.1.0", "mypy>=1.0.0", "ruff>=0.0.243"]
+
 [tool.hatch.envs.lint.scripts]
 typing = "mypy --install-types --non-interactive {args:src/xnatdcat tests}"
 style = ["ruff {args:.}", "black --check --diff {args:.}"]
@@ -134,7 +136,7 @@ ban-relative-imports = "all"
 source_pkgs = ["xnatdcat", "tests"]
 branch = true
 parallel = true
-omit = ["src/xnatdcat/__about__.py"]
+omit = ["src/xnatdcat/__about__.py", "src/xnatdcat/__main__.py"]
 
 [tool.coverage.paths]
 xnatdcat = ["src/xnatdcat", "*/xnatdcat/src/xnatdcat"]
