@@ -1,6 +1,11 @@
-[xnatdcat]
+[img2catalog]
 # optin = "include_catalog"
 # optout = "exclude_catalog"
+
+[dataset.contact_point]
+# override = true
+full_name = "Example Data Management office"
+email = "datamanager@example.com"
 
 [catalog]
 title = "Example XNAT catalog"

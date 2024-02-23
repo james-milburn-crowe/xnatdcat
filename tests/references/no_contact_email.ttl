@@ -15,5 +15,4 @@
         "demo",
         "test" ;
     dcat:contactPoint [ a vcard:VCard ;
-            vcard:fn "Example Data Management office" ;
-            vcard:hasEmail <mailto:datamanager@example.com> ] .
+            vcard:fn "Example Data Management office" ] .
