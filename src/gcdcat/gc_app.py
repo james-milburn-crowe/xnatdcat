@@ -1,24 +1,10 @@
 import gcapi
 import os
-import argparse
+from pathlib import Path
 from datetime import date
 import json
 from src.gcdcat.gc_parser import gc_to_RDF
-from git import Repo
-def __parse_args():
-    parser = argparse.ArgumentParser()
-    required = parser.add_argument_group('required arguments')
-    required.add_argument(
-        "-c",
-        "--credentials",
-        help="file containing your github access token"
-    )
-    required.add_argument("-a", "--archives", help="List of archives to read from", required=True)
-    required.add_argument("-o", "--output", help="Output Folder", required=True)
-    required.add_argument("-f", "--fields", help="Fields required from grand challenge", required=True)
-    required.add_argument("-r", "--repository", help="Git repository to upload to", required=True)
-    required.add_argument("-x", "--extra_data", help="Extra data file", required=True)
-    return parser.parse_args()
+import click
 
 
 def __get_client(credential_file):
@@ -61,44 +47,98 @@ def __get_data_from_images(client, archive,  fields, extra_data):
         for field in fields["dataCatalogRecords"]:
             if image[field]:
                 image_record[field] = image[field]
+            elif field in extra_data["dataCatalogRecord"]:
+                image_record[field] = extra_data["dataCatalogRecord"][field]
             else:
-                if extra_data[archive][field]:
-                    image_record[field] = extra_data[archive][field]
-        image_records.add(image_record)
+                image_record[field] = ""
+        image_records.append(image_record)
     return image_records
 
 
 def __get_data_for_archive(client, response, fields, extra_data):
     archive_data = {}
     for field in fields["dataSet"]:
-        if response[field]:
+        if field in response:
             archive_data[field] = response[field]
+        elif field in extra_data["dataSet"]:
+            archive_data[field] = extra_data["dataSet"][field]
         else:
-            if extra_data[field]:
-                archive_data[field] = extra_data[field]
-
+            archive_data[field] = ""
     image_records = __get_data_from_images(client, response, fields, extra_data)
     archive_data["dataCatalogRecords"] = image_records
     return archive_data
 
-def git_push(repo, commit_message):
-    try:
-        repo = Repo(repo)
-        repo.git.add(update=True)
-        repo.index.commit(commit_message)
-        origin = repo.remote(name='origin')
-        origin.push()
-    except:
-        print('Some error occurred while pushing the code')
+def __get_data_for_catalog(fields, extra_data):
+    """
+    Grand challenge does not have any wider catalog metadata,
+    so it needs to come from extra data
+    """
+    catalog_data = {}
+    for field in fields["dataCatalog"]:
+        catalog_data[field] = extra_data["dataCatalog"][field]
+    return catalog_data
 
 
-def cli_main():
-    args = __parse_args()
-    client = __get_client(args.credentials)
-    extra_data = __get_extra_data(args.extra_data)
-    archive = client.archives.detail(slug=args.archive)
-    data = __get_data_for_archive(client, archive, args.fields, extra_data)
+@click.command('gcdcat')
+@click.option(
+    "-c"
+    "--credentials",
+    help="Provide a file containing credentials",
+    type = click.Path(file_okay=True, dir_okay=False, path_type=Path, writable=True),
+    required=True,
+)
+@click.option(
+    "-a"
+    "--archives",
+    help="List of archives to read from"
+)
+@click.option(
+    "--output",
+    help="Output directory",
+    type=click.Path(file_okay=False, dir_okay=True, path_type=Path, writable=True),
+)
+@click.option(
+    "-f"
+    "--fields",
+    help="fields required from grand challenge")
+@click.option(
+    "-d"
+    "--extra_data",
+    help="Location of a supplementary datafile for missing fields",
+    default=None,
+    type = click.Path(file_okay=True, dir_okay=False, path_type=Path, writable=True),
+)
+@click.option(
+    "-f",
+    "--format",
+    default="turtle",
+    type=click.Choice(
+        ["xml", "n3", "turtle", "nt", "pretty-xml", "trix", "trig", "nquads", "json-ld", "hext"], case_sensitive=False
+    ),
+    help=(
+        "The format that the output should be written in. This value references a"
+        " Serializer plugin in RDFlib. Supportd values are: "
+        ' "xml", "n3", "turtle", "nt", "pretty-xml", "trix", "trig", "nquads",'
+        ' "json-ld" and "hext". Defaults to "turtle".'
+    ),
+)
+@click.pass_context
+def gc_run(ctx: click.Context, output: click.Path, credentials: click.Path):
+    client = __get_client(credentials)
+    extra_data_path = ctx.obj["extra_data"]
+    archives = ctx.obj["archives"]
+    fields = ctx.obj["fields"]
+    extra_data = __get_extra_data(extra_data_path)
+    data = {}
+    archives_data = []
+    for a in archives:
+        archive_response = client.archives.detail(slug=a)
+        archive_data = __get_data_for_archive(client, archive_response, fields, extra_data)
+        archives_data.append(archive_data)
+    data["dataCatalog"] = __get_data_for_catalog(fields, extra_data)
+    data["dataSet"] = archive_data
     g = gc_to_RDF(data)
-    outfile = os.path.join(args.output, date.today().strftime('%Y-%m-%d'))
+    outfile = os.path.join(output, date.today().strftime('%Y-%m-%d'))
     with open(outfile, "w") as file:
-        outfile.write(g)
+       file.write(g.serialize())
+
