@@ -4,7 +4,7 @@ import logging
 from rdflib import DCAT, DCTERMS, FOAF, Graph, Namespace, URIRef
 from rdflib.term import Literal
 
-from src.xnatdcat.dcat_model import DCATCatalog, DCATDataSet, VCard
+from src.img2catalog.dcat_model import DCATCatalog, DCATDataSet, VCard
 from typing import Dict, List
 
 
@@ -51,7 +51,7 @@ def gc_to_DCATDataset(dataset: Dict) -> DCATDataSet:
         DCATDataSet object with fields filled in
     """
     error_list = []
-    if not (dataset["creator"]):
+    if not (dataset['creator']):
         error_list.append("Cannot have empty name of creator")
     if not dataset["description"]:
         error_list.append("Cannot have empty description")
@@ -61,7 +61,7 @@ def gc_to_DCATDataset(dataset: Dict) -> DCATDataSet:
 
     creator_vcard = [
         VCard(
-            full_name=dataset['creator'],
+            full_name=Literal(dataset['creator']),
             uid=URIRef("http://example.com"),  # Should be ORCID?
         )
     ]
@@ -88,7 +88,7 @@ def gc_to_DCATCatalog(response: Dict) -> DCATCatalog:
     DCATCatalog
         DCATCatalog object with fields filled in
     """
-    catalog_uri = URIRef(response['uri'])
+    catalog_uri = URIRef(response['url'])
     catalog = DCATCatalog(
         uri=catalog_uri,
         title=Literal(response['title']),
@@ -117,11 +117,12 @@ def gc_to_RDF(data: Dict) -> Graph:
     export_graph.bind("foaf", FOAF)
     export_graph.bind("vcard", VCARD)
 
-    catalog = gc_to_DCATCatalog(data)
+    catalog = gc_to_DCATCatalog(data["dataCatalog"])
 
     failure_counter = 0
 
-    for p in data["dataSets"]:
+    for p in data["dataSet"]:
+        print(p)
         try:
             dcat_dataset = gc_to_DCATDataset(p)
             d = dcat_dataset.to_graph(userinfo_format=VCARD.VCard)
