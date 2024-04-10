@@ -1,0 +1,22 @@
+{
+  "dataCatalog": {
+    "url": "",
+    "title": "Grand Challenge Image Data Catalog",
+    "description": "A catalog of grand challenge image data sets"
+  },
+  "dataSet": {
+    "id": "pk",
+    "creator": "creator",
+    "url": "url",
+    "description": "description",
+    "license": "license"
+  },
+  "dataCatalogRecords": {
+    "id": "pk",
+    "description": "description",
+    "modalities": "modalities",
+    "status": "status",
+    "url": "url",
+    "license": "license"
+  }
+}

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from datetime import date
 import json
-from src.gcdcat.gc_parser import gc_to_RDF
+from src.img2catalog.gcdcat.gc_parser import gc_to_RDF
 import click
 
 

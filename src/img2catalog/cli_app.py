@@ -1,13 +1,14 @@
 import logging
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Dict
 
 import click
 from click_option_group import MutuallyExclusiveOptionGroup, optgroup
 from rdflib import URIRef
+from src.img2catalog.gcdcat.gc_app import gc_run
 
 # from xnat.client.helpers import xnatpy_login_options, connect_cli
-from img2catalog.const import (
+from const import (
     EXAMPLE_CONFIG_PATH,
     FDP_PASS_ENV,
     FDP_SERVER_ENV,
@@ -18,7 +19,7 @@ from img2catalog.const import (
     XNAT_USER_ENV,
     XNATPY_HOST_ENV,
 )
-from img2catalog.fdpclient import FDPClient
+from fdpclient import FDPClient
 
 # Python < 3.11 does not have tomllib, but tomli provides same functionality
 try:
@@ -114,7 +115,7 @@ def cli_main():
     #     exit(-1)
 
 
-# @click.command(name='dcat', help="Export XNAT to DCAT")
+#@click.command(name='dcat', help="Export XNAT to DCAT")
 # @optgroup.group('Server configuration', help='The configuration of the XNAT server', required=False)
 @click.group(invoke_without_command=True)
 # wontfix
@@ -319,5 +320,6 @@ def output_project(ctx: click.Context, project_id: str, output: click.Path, form
         print(g.serialize(format=format))
 
 
+cli_click.add_command(gc_run)
 if __name__ == "__main__":
     cli_click()

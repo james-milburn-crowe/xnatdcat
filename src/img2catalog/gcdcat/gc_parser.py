@@ -29,6 +29,27 @@ class GCParserError(ValueError):
         super().__init__(message)
         self.error_list = error_list
 
+def gc_private_project(dataset) -> bool:
+    """This function infers if project is private
+    NOTE: GC api has no "access denied" code or similar, it just returns minimal data
+    To infer a project is not accessible, we check if it has no image records associated with it.
+    This is probably acceptable - the same action can be taken with empty projects as restricted
+    - i.e, the dataset owners can be contacted
+
+    Parameters
+    -----
+    dataset: dict
+     dataset from grand challenge
+
+    Returns
+    ---
+    bool
+        Returns true if project is private or empty, false if protected or public
+    """
+    if dataset["dataset"]["dataCatalogRecords"]:
+        return false
+    else:
+        return true
 
 def gc_to_DCATDataset(dataset: Dict) -> DCATDataSet:
     """This function populates a DCAT Dataset class from an GC project
